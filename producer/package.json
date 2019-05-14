@@ -1,0 +1,16 @@
+{
+  "name": "user-platform-event-producer",
+  "version": "0.1.0",
+  "description": "A sample producer for user platform events",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "UNLICENSED",
+  "dependencies": {
+    "hapi": "18.1.0",
+    "kafka-node": "4.1.3",
+    "winston": "3.2.1"
+  }
+}
