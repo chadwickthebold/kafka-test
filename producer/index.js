@@ -2,6 +2,8 @@ const hapi = require('hapi');
 const kafka = require('kafka-node');
 const winston = require('winston');
 const Transport = require('winston-transport');
+const Joi = require('@hapi/joi');
+const uuidv4 = require('uuid/v4');
 
 const {
   KAFKA_HOST = 'localhost:9092',
@@ -9,23 +11,46 @@ const {
   NODE_PORT = 8888
 } = process.env;
 
+const KafkaClient = new kafka.KafkaClient({kafkaHost: KAFKA_HOST});
+
 
 class KafkaTransport extends Transport {
   constructor(options) {
     super(options);
 
-    const kafkaClient = new kafka.KafkaClient({kafkaHost: KAFKA_HOST});
-    const kafkaProducer = new kafka.Producer(kafkaClient);
+    this.client = KafkaClient;
+    this.producer = new kafka.Producer(this.client);
   }
 
+
+  // need to enforce message structure here
   log(info, callback) {
 
-    callback();
+    const { eventKey, eventType, eventPayload } = info.message;
+    const eventMessage = { key: eventKey, type: eventType, payload: eventPayload };
+
+    const payload = {
+      topic: 'users',
+      messages: [JSON.stringify(eventMessage)],
+      key: eventKey,
+      timestamp: Date.now()
+    };
+
+    this.producer.send([payload], (err, data) => {
+      if (err) {
+        sysLogger.error('Failed to send event to Kafka', err);
+      } else {
+        this.emit('logged', info);
+      }
+
+      if (callback) {
+        callback();
+      }
+    });
   }
 };
 
 
-// All event logs will be of severity 'info'
 const sysLogger = winston.createLogger({
   transports: [
     new winston.transports.Console()
@@ -38,6 +63,12 @@ const eventLogger = winston.createLogger({
     new KafkaTransport()
   ]
 });
+
+// this feels unnecessary?
+function triggerEvent(eventKey, eventType, eventPayload) {
+  eventLogger.info({eventKey, eventType, eventPayload});
+}
+
 
 (async () => {
   const server = hapi.server({
@@ -57,23 +88,63 @@ const eventLogger = winston.createLogger({
     method: 'POST',
     path: '/authenticate',
     handler: (request, h) => {
+      // generate a random uuid
+      const randomUUID = uuidv4();
+      
+      triggerEvent(`amg::${randomUUID}`, 'user::authenticate');
 
+      return h.response().code(200);
+    },
+    options: {
+      validate: {
+        payload: {
+          email: Joi.string().email().required(),
+          password: Joi.string().required()
+        }
+      }
     }
   });
 
   server.route({
     method: 'POST',
-    path: '/bookmarks',
+    path: '/users/{user/}bookmarks',
     handler: (request, h) => {
-    
+      triggerEvent(`amg::${request.params.user}`, 'BOOKMARK_ADD', {url: request.payload.url});
+      return h.response.code(201);
+    },
+    options: {
+      validate: {
+        params: {
+          user: Joi.string().guid().required()
+        },
+        payload: {
+          url: Joi.string().uri({
+            scheme: ['http', 'https']
+          }).required()
+        }
+      }
     }
   });
 
   server.route({
     method: 'DELETE',
-    path: '/bookmarks,
+    path: '/user/{user}/bookmarks',
     handler: (request, h) => {
-
+      triggerEvent(`amg::${request.params.user}`, 'BOOKMARK_DELETE', {url: request.query.url});
+      
+      return h.response.code(200);
+    },
+    options: {
+      validate: {
+        params: {
+          user: Joi.string().guid().required()
+        },
+        query: {
+          url: Joi.string().uri({
+            scheme: ['http', 'https']
+          }).required()
+        }
+      }
     }
   });
 
@@ -81,7 +152,7 @@ const eventLogger = winston.createLogger({
     method: 'GET',
     path: '/bookmarks',
     handler: (request, h) => {
-
+      
     }
   });
 
