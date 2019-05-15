@@ -4,6 +4,8 @@ const winston = require('winston');
 const Transport = require('winston-transport');
 const Joi = require('@hapi/joi');
 const uuidv4 = require('uuid/v4');
+const sqlite3 = require('sqlite3');
+const path = require('path');
 
 const {
   KAFKA_HOST = 'localhost:9092',
@@ -13,6 +15,23 @@ const {
 
 const KafkaClient = new kafka.KafkaClient({kafkaHost: KAFKA_HOST});
 
+const dbFile = path.join(__dirname, '/../bookmarkDB');
+
+const db = new sqlite3.Database(dbFile, (err) => {
+    if (err) {
+      console.error('Error opening sqlite DB for bookmarks');
+      process.exit();
+    }
+
+    console.log('Opened bookmarks db successfully');
+});
+
+
+process.on('SIGINT', function() {
+    console.log('\nClosing db connection...');
+    db.close();
+    process.exit();
+});
 
 class KafkaTransport extends Transport {
   constructor(options) {
@@ -107,7 +126,7 @@ function triggerEvent(eventKey, eventType, eventPayload) {
 
   server.route({
     method: 'POST',
-    path: '/users/{user/}bookmarks',
+    path: '/users/{user}/bookmarks',
     handler: (request, h) => {
       triggerEvent(`amg::${request.params.user}`, 'BOOKMARK_ADD', {url: request.payload.url});
       return h.response.code(201);

@@ -1,0 +1,22 @@
+{
+  "name": "event-sourcing",
+  "version": "0.1.0",
+  "description": "A set of demonstration applications for a Kafka-based event sourcing architecture",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/chadwickthebold/kafka-test.git"
+  },
+  "author": "",
+  "license": "UNLICENSED",
+  "bugs": {
+    "url": "https://github.com/chadwickthebold/kafka-test/issues"
+  },
+  "homepage": "https://github.com/chadwickthebold/kafka-test#readme",
+  "dependencies": {
+    "sqlite3": "4.0.8"
+  }
+}

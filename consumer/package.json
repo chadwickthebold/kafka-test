@@ -1,0 +1,15 @@
+{
+  "name": "event-sourcing-consumer",
+  "version": "0.1.0",
+  "description": "A sample implementation of a kafka event consumer",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "UNLICENSED",
+  "dependencies": {
+    "kafka-node": "4.1.3",
+    "sqlite3": "4.0.8"
+  }
+}
