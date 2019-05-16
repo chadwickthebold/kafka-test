@@ -21,6 +21,7 @@ const db = new sqlite3.Database(dbFile, (err) => {
 });
 
 
+
 process.on('SIGINT', function() {
   console.log('\nClosing db connection...');
   db.close();
