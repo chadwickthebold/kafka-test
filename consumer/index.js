@@ -9,22 +9,44 @@ const {
 
 const dbFile = path.join(__dirname, '/../bookmarkDB');
 
-const KafkaClient = new kafka.KafkaClient({kafkaHost: KAFKA_HOST});
+let client;
+let consumer;
+let db;
 
-const db = new sqlite3.Database(dbFile, (err) => {
-  if (err) {
-    console.error('error opening sqlite DB for bookmarks');
-    process.exit();
-  }
+async function connectToDb() {
+  return new Promise((resolve, reject) => {
+    db = new sqlite3.Database(dbFile, (err) => {
+      if (err) {
+        console.error('Error opening sqlite DB for bookmarks', err);
+        reject(err);
+      }
 
-  console.log('Opened bookmarks db successfully');
-});
+      console.log('Opened bookmarks DB successfully');
+      resolve();
+    });
+  });
+}
+
+async function connectToKafka() {
+  client = new kafka.KafkaClient({kafkaHost: KAFKA_HOST});
+  consumer = new kafka.Consumer(client, [{topic: 'users'}], {autoCommit: false});
 
 
+  consumer.on('message', function (message) {
+    console.log('got message from topic!', message);
+  });
+
+  console.log('listening for topic messages...');
+}
 
 process.on('SIGINT', function() {
   console.log('\nClosing db connection...');
   db.close();
   process.exit();
 });
+
+(async () => {
+  await connectToDb();
+  await connectToKafka();
+})();
 

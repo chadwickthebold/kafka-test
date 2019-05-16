@@ -110,7 +110,7 @@ function triggerEvent(eventKey, eventType, eventPayload) {
       // generate a random uuid
       const randomUUID = uuidv4();
       
-      triggerEvent(`amg::${randomUUID}`, 'user::authenticate');
+      triggerEvent(`amg::${randomUUID}`, 'USER_AUTHENTICATE');
 
       return h.response().code(200);
     },
