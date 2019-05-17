@@ -48,7 +48,20 @@ function addBookmark(key, payload, timestamp) {
 }
 
 function deleteBookmark(key, payload) {
+  console.log(`Deleting bookmark for key: ${key}`);
+  let uuid = key.match(uuidRegexp);
+  uuid = uuid[1]; // take the 1st capture group
 
+  return new Promise((resolve, reject) => {
+    db.run(`DELETE FROM bookmarks WHERE url='${payload.url}' AND user='${uuid}'`, (err) => {
+      if (err) {
+        reject(err);
+        return;
+      }
+
+      resolve();
+    });
+  });
 }
 
 const ACTION_MAP = {

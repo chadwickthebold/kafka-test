@@ -147,11 +147,11 @@ function triggerEvent(eventKey, eventType, eventPayload) {
 
   server.route({
     method: 'DELETE',
-    path: '/user/{user}/bookmarks',
+    path: '/users/{user}/bookmarks',
     handler: (request, h) => {
       triggerEvent(`amg::${request.params.user}`, 'BOOKMARK_DELETE', {url: request.query.url});
       
-      return h.response.code(200);
+      return h.response().code(200);
     },
     options: {
       validate: {
