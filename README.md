@@ -25,6 +25,7 @@ from the command line, which can be helpful during debugging.
 You can connect to bookmarksDB with a local sqlite3 client with `sqlite3 bookmarksDB`. `SELECT * FROM bookmarks;` will display
 all the aggregated user bookmark records.
 
+![application architecture diagram](https://raw.githubusercontent.com/chadwickthebold/kafka-test/master/kafka_test_diagram.png)
 
 ## References
 
