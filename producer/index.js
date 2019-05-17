@@ -169,9 +169,31 @@ function triggerEvent(eventKey, eventType, eventPayload) {
 
   server.route({
     method: 'GET',
-    path: '/bookmarks',
-    handler: (request, h) => {
-      
+    path: '/users/{user}/bookmarks',
+    handler: async (request, h) => {
+      const bookmarks = await new Promise((resolve, reject) => {
+        db.all(`SELECT url FROM bookmarks WHERE user='${request.params.user}'`, (err, rows) => {
+          if (err) {
+            reject(err);
+            return;
+          }
+
+          console.log(JSON.stringify(rows));
+          resolve(rows);
+        });
+      });
+
+      return h.response({
+        user: request.params.user,
+        bookmarks
+      }).code(200);
+    },
+    options: {
+      validate: {
+        params: {
+          user: Joi.string().guid().required()
+        }
+      }
     }
   });
 
