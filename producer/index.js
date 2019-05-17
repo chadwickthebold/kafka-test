@@ -46,13 +46,13 @@ class KafkaTransport extends Transport {
   log(info, callback) {
 
     const { eventKey, eventType, eventPayload } = info.message;
-    const eventMessage = { key: eventKey, type: eventType, payload: eventPayload };
+    const eventMessage = { type: eventType, payload: eventPayload, timestamp: Date.now() };
 
     const payload = {
       topic: 'users',
       messages: [JSON.stringify(eventMessage)],
       key: eventKey,
-      timestamp: Date.now()
+      timestamp: Date.now() // this isn't making it through to the consumer for some reason
     };
 
     this.producer.send([payload], (err, data) => {
@@ -112,7 +112,7 @@ function triggerEvent(eventKey, eventType, eventPayload) {
       
       triggerEvent(`amg::${randomUUID}`, 'USER_AUTHENTICATE');
 
-      return h.response().code(200);
+      return h.response(randomUUID).code(200);
     },
     options: {
       validate: {
@@ -129,7 +129,7 @@ function triggerEvent(eventKey, eventType, eventPayload) {
     path: '/users/{user}/bookmarks',
     handler: (request, h) => {
       triggerEvent(`amg::${request.params.user}`, 'BOOKMARK_ADD', {url: request.payload.url});
-      return h.response.code(201);
+      return h.response().code(201);
     },
     options: {
       validate: {
